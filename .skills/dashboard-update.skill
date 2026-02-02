@@ -1,0 +1,227 @@
+PK
+     program-update              references/UT	                   ux     PK    program-update�P��  �    references/template.mdUT	                ux     # Dashboard Update Skill - Template
+
+This skill helps team members update their project dashboards with latest DevRev data.
+
+## What This Skill Does
+
+1. Fetches latest data from DevRev based on your Vista view/project IDs
+2. Updates an HTML dashboard with current status
+3. Optionally sends email updates to your team
+
+## How to Use
+
+When you invoke this skill, Claude will:
+1. Ask for your Vista view URL or project IDs
+2. Ask for email recipients (optional)
+3. Fetch latest DevRev data
+4. Generate/update your dashboard
+5. Optionally send email updates
+
+## Examples
+
+- "Update my dashboard with projects from Vista view X"
+- "Generate Q4 dashboard and email to my team"
+- "Refresh dashboard for ENH-12345, ENH-67890"
+
+PK    program-update�M��$  G    references/best-practices.mdUT	                ux     # Best Practices for Dashboard Updates
+
+## Configuration Management
+
+1. **Personal Config Files**: Each team member should maintain their own config file
+2. **Environment Variables**: Use env vars for sensitive data (API tokens, email credentials)
+3. **Reusable Scripts**: Keep core logic generic, parameters configurable
+
+## Vista View Usage
+
+- Prefer Vista view URLs over hardcoded IDs
+- Update your Vista view filters, let the skill fetch current results
+- Document your Vista view purpose in config
+
+## Email Updates
+
+- Use descriptive subject lines with team/project name
+- Include date in subject for easy filtering
+- Test email delivery before scheduling
+
+## Dashboard Customization
+
+- Use unique dashboard filenames per team
+- Store dashboards in team-specific directories
+- Version control your config files (not credentials)
+
+PK    program-update�+1�  t    SKILL.mdUT	                ux     # Dashboard Update Skill
+
+## Description
+Updates project dashboards with latest DevRev data based on Vista views or specific project IDs. Optionally sends email updates to team members.
+
+## Invocation
+- `/dashboard-update`
+- "Update my project dashboard"
+- "Generate dashboard and send to team"
+
+## Instructions
+
+You are a dashboard update assistant. When invoked, help users update their project dashboards with latest data from DevRev.
+
+### Step 1: Gather Configuration
+
+Ask the user for the following (use AskUserQuestion for better UX):
+
+1. **Data Source** (required):
+   - Option A: Vista View URL (e.g., "https://app.devrev.ai/razorpay/vista/...")
+   - Option B: Comma-separated list of enhancement IDs (e.g., "ENH-12345, ENH-67890")
+
+2. **Dashboard Configuration**:
+   - Dashboard name/title (e.g., "Q4 Key Projects", "Team X Initiatives")
+   - Output location (default: current directory)
+
+3. **Email Settings** (optional):
+   - Send email update? (yes/no)
+   - If yes, recipient emails (comma-separated)
+   - Email subject prefix (default: "Dashboard Update")
+
+### Step 2: Configuration Options
+
+Offer to save the configuration for future use:
+- Create a personal config file (JSON) for reuse
+- Or use one-time parameters for this run
+
+### Step 3: Execute Dashboard Update
+
+1. **If Vista View URL provided**:
+   - Parse the Vista view URL
+   - Extract filter criteria
+   - Fetch matching enhancements from DevRev API
+
+2. **If Enhancement IDs provided**:
+   - Use the provided IDs directly
+   - Fetch enhancement details from DevRev API
+
+3. **Generate Dashboard**:
+   - Create or update HTML dashboard file
+   - Include metrics summary (on-track, delayed, at-risk)
+   - Add executive summary with highlights/lowlights
+   - Create detailed project table
+
+4. **Send Email** (if requested):
+   - Generate email-friendly summary
+   - Use Gmail MCP server to send updates
+   - Include dashboard link/attachment
+
+### Step 4: Provide Results
+
+Show the user:
+- Dashboard file location
+- Summary of projects fetched
+- Status breakdown
+- Link to open dashboard
+- Email delivery confirmation (if sent)
+
+## Technical Implementation
+
+### Creating Personal Config
+
+When user wants to save config, create a file at:
+`~/Documents/claude-code/.dashboard-configs/<username>-config.json`
+
+Example structure:
+```json
+{
+  "dashboard_name": "Q4 Key Projects",
+  "data_source": {
+    "type": "vista_view",
+    "url": "https://app.devrev.ai/razorpay/vista/...",
+    "project_ids": []
+  },
+  "output": {
+    "directory": "/Users/username/Documents/dashboards",
+    "filename": "q4-dashboard.html"
+  },
+  "email": {
+    "enabled": true,
+    "recipients": ["team@example.com", "lead@example.com"],
+    "subject_prefix": "Q4 Update"
+  }
+}
+```
+
+### Fetching from Vista View
+
+To fetch data from a Vista view URL:
+1. Extract the view ID from URL
+2. Use DevRev API to get the view definition
+3. Apply the same filters via `parts.list` API
+4. This allows users to update their Vista view filters without changing code
+
+### Using Existing Scripts
+
+Leverage the existing scripts with modifications:
+- Modify `fetch-q4-key-projects.js` to accept command-line args or env vars
+- Update `update-q4-dashboard.js` to accept config file path
+- Make paths and IDs configurable
+
+### Email Integration
+
+Use the Gmail MCP server available in the environment:
+```javascript
+// Send email via MCP
+await mcp__gmail__send_email({
+  to: recipients.join(','),
+  subject: `${subjectPrefix} - ${date}`,
+  body: textSummary,
+  html: htmlSummary
+});
+```
+
+## Example Interaction
+
+```
+User: /dashboard-update
+
+Claude: I'll help you update your project dashboard. Let me gather some information.
+
+[Uses AskUserQuestion to present options]
+
+Question 1: How would you like to specify projects?
+- Vista View URL (I'll fetch from your saved view)
+- Project IDs (Enter specific ENH-xxxx IDs)
+
+Question 2: Dashboard name?
+- Q4 Key Projects
+- Team Initiatives Dashboard
+- [Custom name]
+
+Question 3: Send email update?
+- Yes, to my team
+- No, just generate dashboard
+
+[User selects options]
+
+Claude: Great! Fetching latest data from DevRev...
+[Shows progress]
+
+✅ Dashboard updated successfully!
+   - 7 projects tracked
+   - 5 on track, 1 delayed, 1 at risk
+
+📁 Dashboard saved to: /Users/shivam/Documents/dashboards/q4-dashboard.html
+📧 Email sent to: team@example.com
+
+Would you like me to save this configuration for future updates?
+```
+
+## Error Handling
+
+- Validate DevRev API token exists
+- Check Vista view URL format
+- Verify email recipients format
+- Handle API rate limits gracefully
+- Provide clear error messages
+
+## Notes
+
+- Each team member can have multiple saved configs for different dashboards
+- Configs are stored locally, never committed with credentials
+- The skill should work offline for dashboard generation if data is cached
+- Always source ~/.zshrc for environment variables before running scripts

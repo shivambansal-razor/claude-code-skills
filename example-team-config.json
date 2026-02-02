@@ -1,0 +1,31 @@
+{
+  "dashboard_name": "Q4 Key Projects - Team X",
+  "data_source": {
+    "type": "project_ids",
+    "project_ids": [
+      "ENH-16343",
+      "ENH-16195",
+      "ENH-16012"
+    ],
+    "vista_filters": null
+  },
+  "output": {
+    "directory": "./dashboards",
+    "filename": "team-x-dashboard.html"
+  },
+  "email": {
+    "enabled": true,
+    "recipients": [
+      "team-lead@example.com",
+      "team-member@example.com"
+    ],
+    "subject_prefix": "Team X Dashboard Update",
+    "send_day": "Monday"
+  },
+  "metadata": {
+    "owner": "team-member-name",
+    "team": "Team X",
+    "created": "2025-01-15",
+    "description": "Q4 key initiatives tracking for Team X"
+  }
+}
